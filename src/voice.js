@@ -1,5 +1,11 @@
-import { joinVoiceChannel, createAudioPlayer, createAudioResource, AudioPlayerStatus, entersState } from '@discordjs/voice';
-import { getVoiceConnection } from '@discordjs/voice';
+import { 
+  joinVoiceChannel as discordJoinVoiceChannel, 
+  createAudioPlayer, 
+  createAudioResource, 
+  AudioPlayerStatus, 
+  entersState,
+  getVoiceConnection 
+} from '@discordjs/voice';
 import { logger } from './utils.js';
 import { speechToText, generateResponse, textToSpeech, clearConversation } from './ai.js';
 
@@ -24,7 +30,7 @@ export async function joinVoiceChannel(interaction) {
     }
 
     // Join voice channel
-    const connection = joinVoiceChannel({
+    const connection = discordJoinVoiceChannel({
       channelId: voiceChannel.id,
       guildId: voiceChannel.guildId,
       adapterCreator: voiceChannel.guild.voiceAdapterCreator,

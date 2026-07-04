@@ -1,6 +1,7 @@
 import OpenAI from 'openai';
 import { config } from './config.js';
 import { logger } from './utils.js';
+import FormData from 'form-data';
 
 const openai = new OpenAI({ apiKey: config.openai.apiKey });
 
@@ -12,18 +13,33 @@ export async function speechToText(audioBuffer) {
   try {
     logger.info('Transcribing audio...');
     
-    // Convert buffer to readable stream for OpenAI
-    const file = new File([audioBuffer], 'audio.wav', { type: 'audio/wav' });
-    
-    const response = await openai.audio.transcriptions.create({
-      file: file,
-      model: 'whisper-1',
-      language: 'ar', // Arabic
-      response_format: 'text',
+    // Create form data for the audio file
+    const formData = new FormData();
+    formData.append('file', audioBuffer, {
+      filename: 'audio.wav',
+      contentType: 'audio/wav',
+    });
+    formData.append('model', 'whisper-1');
+    formData.append('language', 'ar');
+    formData.append('response_format', 'text');
+
+    // Make the request with form data
+    const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${config.openai.apiKey}`,
+        ...formData.getHeaders(),
+      },
+      body: formData,
     });
 
-    logger.info(`Transcribed: "${response}"`);
-    return response;
+    if (!response.ok) {
+      throw new Error(`OpenAI API error: ${response.status} ${response.statusText}`);
+    }
+
+    const text = await response.text();
+    logger.info(`Transcribed: "${text}"`);
+    return text;
   } catch (error) {
     logger.error(`STT Error: ${error.message}`);
     return null;
